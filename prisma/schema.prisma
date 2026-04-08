@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  matchesAsA1 Match[]       @relation("MatchPlayerA1")
+  matchesAsA2 Match[]       @relation("MatchPlayerA2")
+  matchesAsB1 Match[]       @relation("MatchPlayerB1")
+  matchesAsB2 Match[]       @relation("MatchPlayerB2")
+  sitOuts     RoundSitOut[]
+}
+
+model Round {
+  id          String   @id @default(cuid())
+  title       String?
+  scheduledAt DateTime?
+  venue       String?
+  mapsUrl     String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  matches Match[]
+  sitOuts RoundSitOut[]
+}
+
+model RoundSitOut {
+  id      String @id @default(cuid())
+  roundId String
+  userId  String
+  round   Round  @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([roundId, userId])
+}
+
+model Match {
+  id         String @id @default(cuid())
+  roundId    String
+  courtLabel String?
+
+  playerA1Id String
+  playerA2Id String
+  playerB1Id String
+  playerB2Id String
+
+  scoreTeamA Int?
+  scoreTeamB Int?
+
+  round    Round @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  playerA1 User  @relation("MatchPlayerA1", fields: [playerA1Id], references: [id])
+  playerA2 User  @relation("MatchPlayerA2", fields: [playerA2Id], references: [id])
+  playerB1 User  @relation("MatchPlayerB1", fields: [playerB1Id], references: [id])
+  playerB2 User  @relation("MatchPlayerB2", fields: [playerB2Id], references: [id])
+}
