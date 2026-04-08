@@ -22,7 +22,10 @@ export type MatchScoreFormProps = {
 
 const initial: ActionResult = {};
 
-const scoreInputClass = cn(inputClassName, "w-16 px-2 py-1.5 text-center text-sm tabular-nums");
+const scoreInputClass = cn(
+  inputClassName,
+  "w-[4.25rem] max-w-full px-2 py-2 text-center text-base tabular-nums sm:w-16 sm:py-1.5 sm:text-sm",
+);
 
 export function MatchScoreForm({
   matchId,
@@ -43,17 +46,17 @@ export function MatchScoreForm({
         {courtLabel && (
           <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-[var(--accent)]">{courtLabel}</p>
         )}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div className="flex-1 space-y-1">
-            <p className="text-sm font-medium">
-              {a1.name} + {a2.name}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
+          <div className="min-w-0 flex-1 space-y-1">
+            <p className="text-base font-medium leading-snug sm:text-sm">
+              <span className="break-words">{a1.name}</span> + <span className="break-words">{a2.name}</span>
             </p>
             <p className="text-xs text-[var(--muted)]">vs</p>
-            <p className="text-sm font-medium">
-              {b1.name} + {b2.name}
+            <p className="text-base font-medium leading-snug sm:text-sm">
+              <span className="break-words">{b1.name}</span> + <span className="break-words">{b2.name}</span>
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-center gap-3 sm:justify-end sm:gap-2">
             <label className="sr-only" htmlFor={`sa-${matchId}`}>
               Juegos equipo A
             </label>
@@ -90,7 +93,7 @@ export function MatchScoreForm({
             {state.error}
           </p>
         )}
-        <Button type="submit" variant="outline" size="sm" disabled={pending} className="mt-3 w-full sm:w-auto">
+        <Button type="submit" variant="outline" size="md" disabled={pending} className="mt-4 w-full sm:mt-3 sm:w-auto sm:text-sm">
           {pending ? "Guardando…" : "Guardar resultado"}
         </Button>
       </form>

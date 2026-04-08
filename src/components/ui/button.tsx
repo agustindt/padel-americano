@@ -17,7 +17,7 @@ export function Button({
     <button
       type={type}
       className={cn(
-        "inline-flex items-center justify-center font-medium transition-colors disabled:pointer-events-none disabled:opacity-50",
+        "inline-flex touch-manipulation items-center justify-center font-medium transition-colors disabled:pointer-events-none disabled:opacity-50",
         "rounded-[var(--radius-sm)]",
         variant === "primary" &&
           "bg-[var(--accent)] text-white shadow-[var(--shadow-sm)] hover:bg-[var(--accent-hover)]",
@@ -26,9 +26,9 @@ export function Button({
         variant === "outline" &&
           "border border-[var(--border)] bg-transparent hover:bg-[var(--surface-hover)]",
         variant === "ghost" && "border border-transparent hover:bg-[var(--surface-hover)]",
-        size === "sm" && "px-3 py-1.5 text-sm",
-        size === "md" && "px-4 py-2.5 text-sm",
-        size === "lg" && "px-5 py-3 text-base",
+        size === "sm" && "min-h-11 px-4 py-2 text-sm",
+        size === "md" && "min-h-11 px-4 py-2.5 text-base sm:text-sm",
+        size === "lg" && "min-h-12 px-5 py-3 text-base",
         className,
       )}
       {...props}

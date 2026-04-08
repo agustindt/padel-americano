@@ -36,17 +36,27 @@ export default async function PosicionesPage() {
         </EmptyState>
       ) : (
         <Card className="overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[320px] text-left text-sm">
+          <div className="-mx-4 overflow-x-auto overscroll-x-contain px-4 [-webkit-overflow-scrolling:touch] sm:mx-0 sm:px-0">
+            <table className="w-full min-w-[300px] text-left text-sm sm:min-w-[360px]">
               <thead>
                 <tr className="border-b border-[var(--border)] bg-[var(--surface-muted)]/50 text-[var(--muted)]">
-                  <th className="px-4 py-3 font-medium">#</th>
-                  <th className="px-4 py-3 font-medium">Jugador</th>
-                  <th className="px-4 py-3 font-medium text-center">PJ</th>
-                  <th className="px-4 py-3 font-medium text-center">G</th>
-                  <th className="px-4 py-3 font-medium text-center">P</th>
-                  <th className="px-4 py-3 font-medium text-center">E</th>
-                  <th className="px-4 py-3 font-medium text-right">Pts</th>
+                  <th className="whitespace-nowrap px-3 py-3 text-xs font-medium sm:px-4 sm:text-sm">#</th>
+                  <th className="min-w-[6rem] px-3 py-3 text-xs font-medium sm:px-4 sm:text-sm">Jugador</th>
+                  <th className="whitespace-nowrap px-2 py-3 text-center text-xs font-medium sm:px-4 sm:text-sm">
+                    PJ
+                  </th>
+                  <th className="whitespace-nowrap px-2 py-3 text-center text-xs font-medium sm:px-4 sm:text-sm">
+                    G
+                  </th>
+                  <th className="whitespace-nowrap px-2 py-3 text-center text-xs font-medium sm:px-4 sm:text-sm">
+                    P
+                  </th>
+                  <th className="whitespace-nowrap px-2 py-3 text-center text-xs font-medium sm:px-4 sm:text-sm">
+                    E
+                  </th>
+                  <th className="whitespace-nowrap px-3 py-3 text-right text-xs font-medium sm:px-4 sm:text-sm">
+                    Pts
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -55,15 +65,17 @@ export default async function PosicionesPage() {
                     key={row.userId}
                     className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--surface-hover)]"
                   >
-                    <td className="px-4 py-3 text-[var(--muted)]">{i + 1}</td>
-                    <td className="px-4 py-3 font-medium">{row.name}</td>
-                    <td className="px-4 py-3 text-center tabular-nums">{row.played}</td>
-                    <td className="px-4 py-3 text-center tabular-nums text-emerald-700 dark:text-emerald-400">
+                    <td className="px-3 py-3 text-[var(--muted)] sm:px-4">{i + 1}</td>
+                    <td className="min-w-0 max-w-[42vw] px-3 py-3 font-medium break-words sm:max-w-none sm:px-4">
+                      {row.name}
+                    </td>
+                    <td className="px-2 py-3 text-center tabular-nums sm:px-4">{row.played}</td>
+                    <td className="px-2 py-3 text-center tabular-nums text-emerald-700 dark:text-emerald-400 sm:px-4">
                       {row.wins}
                     </td>
-                    <td className="px-4 py-3 text-center tabular-nums text-[var(--muted)]">{row.losses}</td>
-                    <td className="px-4 py-3 text-center tabular-nums">{row.draws}</td>
-                    <td className="px-4 py-3 text-right tabular-nums font-semibold">{row.points}</td>
+                    <td className="px-2 py-3 text-center tabular-nums text-[var(--muted)] sm:px-4">{row.losses}</td>
+                    <td className="px-2 py-3 text-center tabular-nums sm:px-4">{row.draws}</td>
+                    <td className="px-3 py-3 text-right tabular-nums font-semibold sm:px-4">{row.points}</td>
                   </tr>
                 ))}
               </tbody>

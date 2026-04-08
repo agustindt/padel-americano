@@ -49,6 +49,10 @@ html.dark {
   --ring: var(--accent);
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   background: transparent;
   color: var(--foreground);
@@ -57,8 +61,10 @@ body {
 
 .page-shell {
   min-height: 100dvh;
+  min-height: 100svh;
   display: flex;
   flex-direction: column;
+  overflow-x: clip;
   background-color: var(--background);
   background-image:
     radial-gradient(ellipse 120% 80% at 50% -30%, rgb(27 110 79 / 0.12), transparent 55%),

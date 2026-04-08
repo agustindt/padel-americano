@@ -17,7 +17,7 @@ export function ThemeToggle() {
     <button
       type="button"
       onClick={toggle}
-      className="flex h-9 w-9 items-center justify-center rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] text-lg text-[var(--muted)] shadow-[var(--shadow-sm)] transition hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)]"
+      className="flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] text-lg text-[var(--muted)] shadow-[var(--shadow-sm)] transition hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)] active:scale-95"
       aria-label="Cambiar tema claro u oscuro"
       title="Tema"
     >

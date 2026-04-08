@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Bebas_Neue, DM_Sans } from "next/font/google";
 import { ThemeScript } from "@/components/ThemeScript";
 import { BRAND_NAME, BRAND_TAGLINE } from "@/lib/brand";
@@ -21,6 +21,17 @@ export const metadata: Metadata = {
     template: `%s · ${BRAND_NAME}`,
   },
   description: `${BRAND_TAGLINE}. Torneo americano: parejas al azar, puntos individuales.`,
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f3f6f0" },
+    { media: "(prefers-color-scheme: dark)", color: "#0c100d" },
+  ],
 };
 
 export default function RootLayout({

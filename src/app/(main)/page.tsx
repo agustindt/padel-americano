@@ -32,11 +32,11 @@ export default async function HomePage() {
       />
 
       {upcoming && (
-        <Card className="border-[var(--accent-muted)]/50 bg-[var(--surface)] p-5 shadow-[var(--shadow-md)]">
+        <Card className="border-[var(--accent-muted)]/50 bg-[var(--surface)] p-4 shadow-[var(--shadow-md)] sm:p-5">
           <p className="text-xs font-semibold uppercase tracking-wider text-[var(--accent)]">
             Próxima fecha
           </p>
-          <h2 className="mt-1 font-display text-2xl uppercase tracking-wide text-[var(--foreground)]">
+          <h2 className="mt-1 break-words font-display text-2xl uppercase tracking-wide text-[var(--foreground)]">
             {upcoming.title ?? `Fecha ${upcoming.sortOrder}`}
           </h2>
           {upcoming.scheduledAt && (
@@ -44,13 +44,15 @@ export default async function HomePage() {
               {formatRoundDateTimeLong(upcoming.scheduledAt)}
             </p>
           )}
-          {upcoming.venue && <p className="mt-2 text-sm font-medium text-[var(--foreground)]">{upcoming.venue}</p>}
+          {upcoming.venue && (
+            <p className="mt-2 break-words text-sm font-medium text-[var(--foreground)]">{upcoming.venue}</p>
+          )}
           {upcoming.mapsUrl && (
             <a
               href={upcoming.mapsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-3 inline-flex text-sm font-medium text-[var(--accent)] underline-offset-2 hover:underline"
+              className="mt-3 inline-flex min-h-11 touch-manipulation items-center text-sm font-medium text-[var(--accent)] underline-offset-2 hover:underline"
             >
               Cómo llegar (mapa)
             </a>
@@ -67,8 +69,8 @@ export default async function HomePage() {
       )}
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Link href="/posiciones" className="group block">
-          <Card className="h-full p-5 transition group-hover:border-[var(--accent)] group-hover:shadow-[var(--shadow-md)]">
+        <Link href="/posiciones" className="group block touch-manipulation active:scale-[0.99]">
+          <Card className="h-full p-4 transition group-hover:border-[var(--accent)] group-hover:shadow-[var(--shadow-md)] sm:p-5">
             <h2 className="font-display text-2xl uppercase tracking-wide text-[var(--accent-strong)] group-hover:text-[var(--accent)]">
               Tabla
             </h2>
@@ -84,8 +86,8 @@ export default async function HomePage() {
             )}
           </Card>
         </Link>
-        <Link href="/fechas" className="group block">
-          <Card className="h-full p-5 transition group-hover:border-[var(--accent)] group-hover:shadow-[var(--shadow-md)]">
+        <Link href="/fechas" className="group block touch-manipulation active:scale-[0.99]">
+          <Card className="h-full p-4 transition group-hover:border-[var(--accent)] group-hover:shadow-[var(--shadow-md)] sm:p-5">
             <h2 className="font-display text-2xl uppercase tracking-wide text-[var(--accent-strong)] group-hover:text-[var(--accent)]">
               Fechas
             </h2>

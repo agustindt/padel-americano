@@ -53,8 +53,8 @@ export default async function FechasPage() {
             return (
               <Card key={round.id} className="p-4 sm:p-5">
                 <header className="mb-4 flex flex-col gap-2 border-b border-[var(--border)] pb-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
-                  <div>
-                    <h2 className="font-display text-2xl uppercase tracking-wide text-[var(--foreground)]">
+                  <div className="min-w-0">
+                    <h2 className="break-words font-display text-2xl uppercase tracking-wide text-[var(--foreground)]">
                       {round.title || `Fecha ${round.sortOrder}`}
                     </h2>
                     {when && (
@@ -63,14 +63,14 @@ export default async function FechasPage() {
                       </time>
                     )}
                     {round.venue && (
-                      <p className="mt-2 text-sm font-medium text-[var(--foreground)]">{round.venue}</p>
+                      <p className="mt-2 break-words text-sm font-medium text-[var(--foreground)]">{round.venue}</p>
                     )}
                     {round.mapsUrl && (
                       <a
                         href={round.mapsUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="mt-2 inline-flex text-sm font-medium text-[var(--accent)] underline-offset-2 hover:underline"
+                        className="mt-2 inline-flex min-h-11 touch-manipulation items-center text-sm font-medium text-[var(--accent)] underline-offset-2 hover:underline"
                       >
                         Cómo llegar
                       </a>
