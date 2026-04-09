@@ -1,13 +1,21 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useMemo, useState } from "react";
 import { deleteMatchAction, saveMatchScoreAction, type ActionResult } from "@/app/actions/fechas";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { inputClassName } from "@/components/ui/input-styles";
 import { cn } from "@/lib/cn";
+import {
+  formatSetsDisplay,
+  MAX_SETS,
+  verdictFromSets,
+  type GameSet,
+} from "@/lib/match-sets";
 
 type Player = { id: string; name: string };
+
+type Row = { a: string; b: string };
 
 export type MatchScoreFormProps = {
   matchId: string;
@@ -16,8 +24,8 @@ export type MatchScoreFormProps = {
   a2: Player;
   b1: Player;
   b2: Player;
-  scoreTeamA: number | null;
-  scoreTeamB: number | null;
+  /** null si todavía no hay resultado guardado */
+  setScores: GameSet[] | null;
 };
 
 const initial: ActionResult = {};
@@ -27,6 +35,36 @@ const scoreInputClass = cn(
   "w-[4.25rem] max-w-full px-2 py-2 text-center text-base tabular-nums sm:w-16 sm:py-1.5 sm:text-sm",
 );
 
+function rowsFromSets(sets: GameSet[] | null): Row[] {
+  if (sets && sets.length > 0) {
+    return sets.map((s) => ({ a: String(s.a), b: String(s.b) }));
+  }
+  return [
+    { a: "", b: "" },
+    { a: "", b: "" },
+    { a: "", b: "" },
+  ];
+}
+
+function buildSetsFromRows(rows: Row[]): GameSet[] | { error: string } {
+  const out: GameSet[] = [];
+  for (const row of rows) {
+    const ta = row.a.trim();
+    const tb = row.b.trim();
+    if (ta === "" && tb === "") continue;
+    if (ta === "" || tb === "") {
+      return { error: "Completá ambos lados en cada set que empezaste." };
+    }
+    const a = Number.parseInt(ta, 10);
+    const b = Number.parseInt(tb, 10);
+    if (Number.isNaN(a) || Number.isNaN(b)) {
+      return { error: "Los juegos de cada set tienen que ser números." };
+    }
+    out.push({ a, b });
+  }
+  return out;
+}
+
 export function MatchScoreForm({
   matchId,
   courtLabel,
@@ -34,23 +72,43 @@ export function MatchScoreForm({
   a2,
   b1,
   b2,
-  scoreTeamA,
-  scoreTeamB,
+  setScores: initialSetScores,
 }: MatchScoreFormProps) {
   const [state, saveAction, savePending] = useActionState(saveMatchScoreAction, initial);
   const [delState, deleteAction, deletePending] = useActionState(deleteMatchAction, initial);
+  const [rows, setRows] = useState<Row[]>(() => rowsFromSets(initialSetScores));
+
+  const setsJson = useMemo(() => {
+    const built = buildSetsFromRows(rows);
+    if ("error" in built) return "[]";
+    return JSON.stringify(built);
+  }, [rows]);
+
+  const clientPreview = useMemo(() => {
+    const built = buildSetsFromRows(rows);
+    if ("error" in built || built.length === 0) return null;
+    return verdictFromSets(built);
+  }, [rows]);
 
   const hasSavedScore =
-    scoreTeamA !== null && scoreTeamB !== null && !(scoreTeamA === 0 && scoreTeamB === 0);
+    initialSetScores != null &&
+    initialSetScores.length > 0 &&
+    verdictFromSets(initialSetScores).kind === "counted";
+
+  const summaryLine =
+    initialSetScores && initialSetScores.length > 0 ? formatSetsDisplay(initialSetScores) : null;
 
   return (
     <Card className="p-4">
       <form action={saveAction}>
         <input type="hidden" name="matchId" value={matchId} />
+        <input type="hidden" name="setsJson" value={setsJson} />
+
         {courtLabel && (
           <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-[var(--accent)]">{courtLabel}</p>
         )}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
+
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
           <div className="min-w-0 flex-1 space-y-1">
             <p className="text-base font-medium leading-snug sm:text-sm">
               <span className="break-words">{a1.name}</span> + <span className="break-words">{a2.name}</span>
@@ -59,45 +117,100 @@ export function MatchScoreForm({
             <p className="text-base font-medium leading-snug sm:text-sm">
               <span className="break-words">{b1.name}</span> + <span className="break-words">{b2.name}</span>
             </p>
+            {summaryLine && (
+              <p className="mt-2 text-xs font-medium text-[var(--foreground)]">Guardado: {summaryLine}</p>
+            )}
           </div>
-          <div className="flex items-center justify-center gap-3 sm:justify-end sm:gap-2">
-            <label className="sr-only" htmlFor={`sa-${matchId}`}>
-              Juegos equipo A
-            </label>
-            <input
-              id={`sa-${matchId}`}
-              name="scoreTeamA"
-              type="number"
-              min={0}
-              max={99}
-              required
-              defaultValue={scoreTeamA ?? ""}
-              placeholder="0"
-              className={scoreInputClass}
-            />
-            <span className="text-[var(--muted)]">—</span>
-            <label className="sr-only" htmlFor={`sb-${matchId}`}>
-              Juegos equipo B
-            </label>
-            <input
-              id={`sb-${matchId}`}
-              name="scoreTeamB"
-              type="number"
-              min={0}
-              max={99}
-              required
-              defaultValue={scoreTeamB ?? ""}
-              placeholder="0"
-              className={scoreInputClass}
-            />
+
+          <div className="w-full min-w-0 sm:max-w-md">
+            <p className="mb-2 text-xs font-medium text-[var(--muted)]">Al mejor de tres sets (podés cargar 1, 2 o 3)</p>
+            <div className="flex items-center justify-between gap-2 border-b border-[var(--border)] pb-2 text-xs text-[var(--muted)] sm:text-sm">
+              <span className="w-14 shrink-0" />
+              <span className="flex-1 text-center">Equipo A</span>
+              <span className="w-6 shrink-0" />
+              <span className="flex-1 text-center">Equipo B</span>
+            </div>
+            <div className="space-y-2">
+              {rows.map((row, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <span className="w-14 shrink-0 text-xs text-[var(--muted)]">Set {i + 1}</span>
+                  <label className="sr-only" htmlFor={`${matchId}-a-${i}`}>
+                    Juegos equipo A set {i + 1}
+                  </label>
+                  <input
+                    id={`${matchId}-a-${i}`}
+                    type="number"
+                    min={0}
+                    max={99}
+                    value={row.a}
+                    onChange={(e) => {
+                      const next = [...rows];
+                      next[i] = { ...next[i], a: e.target.value };
+                      setRows(next);
+                    }}
+                    placeholder="0"
+                    className={cn(scoreInputClass, "flex-1")}
+                  />
+                  <span className="w-6 shrink-0 text-center text-[var(--muted)]">—</span>
+                  <label className="sr-only" htmlFor={`${matchId}-b-${i}`}>
+                    Juegos equipo B set {i + 1}
+                  </label>
+                  <input
+                    id={`${matchId}-b-${i}`}
+                    type="number"
+                    min={0}
+                    max={99}
+                    value={row.b}
+                    onChange={(e) => {
+                      const next = [...rows];
+                      next[i] = { ...next[i], b: e.target.value };
+                      setRows(next);
+                    }}
+                    placeholder="0"
+                    className={cn(scoreInputClass, "flex-1")}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {rows.length < MAX_SETS && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs"
+                  onClick={() => setRows((r) => [...r, { a: "", b: "" }])}
+                >
+                  + Agregar set
+                </Button>
+              )}
+              {rows.length > 1 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs text-[var(--muted)]"
+                  onClick={() => setRows((r) => r.slice(0, -1))}
+                >
+                  Quitar último set
+                </Button>
+              )}
+            </div>
+            {clientPreview && clientPreview.kind === "incomplete" && (
+              <p className="mt-2 text-xs text-amber-700 dark:text-amber-400">{clientPreview.message}</p>
+            )}
+            {clientPreview && clientPreview.kind === "invalid" && rows.some((r) => r.a.trim() || r.b.trim()) && (
+              <p className="mt-2 text-xs text-amber-700 dark:text-amber-400">{clientPreview.message}</p>
+            )}
           </div>
         </div>
-        <p className="mt-2 text-xs text-[var(--muted)]">
-          El marcador 0–0 no cuenta en la tabla: cuando termine el partido, cargá el resultado real (ej. 6–4).
+
+        <p className="mt-4 text-xs text-[var(--muted)]">
+          Los sets en blanco se ignoran. Un partido al mejor de tres se cierra cuando un equipo gana 2 sets (ej. 6–3, 3–6,
+          6–3). Si solo jugaron un set, cargá solo ese renglón.
           {hasSavedScore && (
             <span className="mt-1 block">
-              Podés <strong className="font-medium text-[var(--foreground)]">modificar el marcador</strong> y volver a
-              guardar; la tabla se actualiza con los valores nuevos.
+              Podés <strong className="font-medium text-[var(--foreground)]">cambiar los sets</strong> y volver a guardar.
             </span>
           )}
         </p>

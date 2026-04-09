@@ -2,6 +2,7 @@ import { CreateRoundForm } from "@/components/CreateRoundForm";
 import { ManualMatchForm } from "@/components/ManualMatchForm";
 import { MatchScoreForm } from "@/components/MatchScoreForm";
 import { computeStandings } from "@/lib/standings";
+import { parseSetScoresFromDb } from "@/lib/match-sets";
 import { prisma } from "@/lib/prisma";
 import { formatRoundDateTime } from "@/lib/datetime";
 import { PageHeader } from "@/components/ui/page-header";
@@ -100,15 +101,14 @@ export default async function FechasPage() {
                 <div className="space-y-3">
                   {round.matches.map((m) => (
                     <MatchScoreForm
-                      key={`${m.id}-${m.scoreTeamA ?? "x"}-${m.scoreTeamB ?? "x"}`}
+                      key={`${m.id}-${JSON.stringify(m.setScores ?? null)}`}
                       matchId={m.id}
                       courtLabel={m.courtLabel}
                       a1={m.playerA1}
                       a2={m.playerA2}
                       b1={m.playerB1}
                       b2={m.playerB2}
-                      scoreTeamA={m.scoreTeamA}
-                      scoreTeamB={m.scoreTeamB}
+                      setScores={parseSetScoresFromDb(m.setScores)}
                     />
                   ))}
                 </div>

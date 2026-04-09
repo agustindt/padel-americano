@@ -3,7 +3,9 @@
 import { auth } from "@/auth";
 import { planRoundMatches } from "@/lib/americano";
 import { prisma } from "@/lib/prisma";
+import { verdictFromSets, parseSetsJsonField } from "@/lib/match-sets";
 import { revalidatePath } from "next/cache";
+import type { Prisma } from "@prisma/client";
 
 export type ActionResult = { ok?: true; error?: string };
 
@@ -137,25 +139,24 @@ export async function saveMatchScoreAction(
   if (!session?.user?.id) return { error: "No autorizado." };
 
   const matchId = String(formData.get("matchId") ?? "");
-  const scoreA = Number.parseInt(String(formData.get("scoreTeamA") ?? ""), 10);
-  const scoreB = Number.parseInt(String(formData.get("scoreTeamB") ?? ""), 10);
+  const setsRaw = String(formData.get("setsJson") ?? "");
 
   if (!matchId) return { error: "Partido inválido." };
-  if (Number.isNaN(scoreA) || Number.isNaN(scoreB)) {
-    return { error: "Ingresá juegos numéricos para ambos equipos." };
+
+  const parsed = parseSetsJsonField(setsRaw);
+  if ("error" in parsed) return { error: parsed.error };
+
+  const verdict = verdictFromSets(parsed);
+  if (verdict.kind === "invalid") {
+    return { error: verdict.message };
   }
-  if (scoreA < 0 || scoreB < 0) {
-    return { error: "Los juegos no pueden ser negativos." };
-  }
-  if (scoreA === 0 && scoreB === 0) {
-    return {
-      error: "0–0 no cuenta como partido jugado. Cargá el marcador real (ej. 6–4).",
-    };
+  if (verdict.kind === "incomplete") {
+    return { error: verdict.message };
   }
 
   await prisma.match.update({
     where: { id: matchId },
-    data: { scoreTeamA: scoreA, scoreTeamB: scoreB },
+    data: { setScores: parsed as unknown as Prisma.InputJsonValue },
   });
 
   revalidatePath("/");

@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getMinGamesForOfficialRanking } from "@/lib/ranking-config";
+import { parseSetScoresFromDb, verdictFromSets } from "@/lib/match-sets";
+import { Prisma } from "@prisma/client";
 
 export type StandingRow = {
   userId: string;
@@ -15,13 +17,7 @@ export type StandingRow = {
   meetsMinimumGames: boolean;
 };
 
-/** Partidos que no cuentan para estadísticas (marcador placeholder). */
-export function isScoreCountedForStandings(scoreTeamA: number, scoreTeamB: number): boolean {
-  if (scoreTeamA === 0 && scoreTeamB === 0) return false;
-  return true;
-}
-
-/** 3 pts victoria, 1 empate, 0 derrota. Ignora 0–0 como partido no jugado. */
+/** 3 pts victoria, 1 empate, 0 derrota. Partidos al mejor de 3 sets o un solo set. */
 export async function computeStandings(): Promise<StandingRow[]> {
   const minGames = getMinGamesForOfficialRanking();
   const users = await prisma.user.findMany({ orderBy: { name: "asc" } });
@@ -41,10 +37,7 @@ export async function computeStandings(): Promise<StandingRow[]> {
   }
 
   const finished = await prisma.match.findMany({
-    where: {
-      scoreTeamA: { not: null },
-      scoreTeamB: { not: null },
-    },
+    where: { setScores: { not: Prisma.DbNull } },
   });
 
   const addTeam = (
@@ -69,13 +62,14 @@ export async function computeStandings(): Promise<StandingRow[]> {
   };
 
   for (const m of finished) {
-    const a = m.scoreTeamA ?? 0;
-    const b = m.scoreTeamB ?? 0;
-    if (!isScoreCountedForStandings(a, b)) continue;
+    const sets = parseSetScoresFromDb(m.setScores);
+    if (!sets || sets.length === 0) continue;
+    const verdict = verdictFromSets(sets);
+    if (verdict.kind !== "counted") continue;
 
-    const draw = a === b;
-    const aWon = a > b;
-    const bWon = b > a;
+    const draw = verdict.draw;
+    const aWon = verdict.teamAWon === true;
+    const bWon = verdict.teamAWon === false;
     addTeam([m.playerA1Id, m.playerA2Id], draw ? null : aWon, draw);
     addTeam([m.playerB1Id, m.playerB2Id], draw ? null : bWon, draw);
   }

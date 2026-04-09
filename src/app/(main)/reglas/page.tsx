@@ -31,26 +31,27 @@ function SectionTitle({ id, icon, children }: { id: string; icon?: ReactNode; ch
   );
 }
 
-/** Diagrama simple equipo A vs B (solo visual, accesible con texto debajo). */
+/** Ejemplo al mejor de 3 sets (solo visual). */
 function MatchSketch() {
+  const sets = [
+    { a: 6, b: 3 },
+    { a: 3, b: 6 },
+    { a: 6, b: 3 },
+  ];
   return (
-    <div
-      className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-center sm:gap-4"
-      aria-hidden
-    >
-      <div className="flex flex-1 flex-col items-center rounded-[var(--radius-sm)] border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-center">
-        <span className="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
-          Equipo A
-        </span>
-        <span className="mt-1 font-display text-3xl tabular-nums text-[var(--foreground)]">6</span>
-      </div>
-      <div className="flex items-center justify-center text-sm font-medium text-[var(--muted)]">vs</div>
-      <div className="flex flex-1 flex-col items-center rounded-[var(--radius-sm)] border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-center">
-        <span className="text-xs font-semibold uppercase tracking-wider text-amber-800 dark:text-amber-300">
-          Equipo B
-        </span>
-        <span className="mt-1 font-display text-3xl tabular-nums text-[var(--foreground)]">4</span>
-      </div>
+    <div className="space-y-2 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-muted)]/40 p-3" aria-hidden>
+      <p className="text-center text-xs font-medium text-[var(--muted)]">Ejemplo: 2–1 en sets para el equipo A</p>
+      {sets.map((s, i) => (
+        <div
+          key={i}
+          className="flex items-center justify-between gap-3 rounded-[var(--radius-sm)] bg-[var(--surface)] px-3 py-2 text-sm tabular-nums"
+        >
+          <span className="text-[var(--muted)]">Set {i + 1}</span>
+          <span className="font-medium text-emerald-700 dark:text-emerald-400">{s.a}</span>
+          <span className="text-[var(--muted)]">—</span>
+          <span className="font-medium text-amber-800 dark:text-amber-300">{s.b}</span>
+        </div>
+      ))}
     </div>
   );
 }
@@ -73,7 +74,7 @@ function FlowDiagram() {
         Partidos
       </text>
       <text x="68" y="72" textAnchor="middle" fill={muted} fontSize="10">
-        con resultado
+        sets válidos
       </text>
       <line
         x1="136"
@@ -149,7 +150,7 @@ export default function ReglasPage() {
     <div className="space-y-10">
       <PageHeader
         title="Reglas y cómo funciona"
-        description="Todo lo que la app usa para armar fechas, contar partidos y ordenar la tabla. Si algo no está cargado en el sistema, no cuenta."
+        description="Los partidos se cargan set por set (mejor de tres en la cancha: quien gana 2 sets se lleva el partido). La tabla usa solo ese resultado final del partido — victoria, empate o derrota — no cada set por separado."
       />
 
       <nav className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-muted)]/40 p-3 text-sm">
@@ -162,7 +163,7 @@ export default function ReglasPage() {
           </li>
           <li>
             <a href="#marcador" className="text-[var(--accent)] underline-offset-2 hover:underline">
-              Marcadores válidos
+              Sets y marcador (mejor de tres)
             </a>
           </li>
           <li>
@@ -188,8 +189,11 @@ export default function ReglasPage() {
           Puntos por resultado
         </SectionTitle>
         <p className="text-sm leading-relaxed text-[var(--muted)]">
-          Cada jugador suma según cómo termina <strong className="text-[var(--foreground)]">su equipo</strong> en ese
-          partido (no importa si pegaste volea o no: gana y suma el binomio).
+          Cada jugador suma según el <strong className="text-[var(--foreground)]">resultado del partido</strong>: al
+          mejor de tres, gana el equipo que primero llega a <strong className="text-[var(--foreground)]">2 sets</strong>{" "}
+          (ej. 6–3, 3–6, 6–3). Si solo cargás <strong className="text-[var(--foreground)]">un set</strong>, ese set
+          define el partido entero (como un partido de un solo set). Los puntos no se reparten por set: es una victoria,
+          empate o derrota por partido.
         </p>
         <Card className="overflow-hidden p-0">
           <div className="overflow-x-auto">
@@ -203,21 +207,22 @@ export default function ReglasPage() {
               <tbody className="tabular-nums">
                 <tr className="border-b border-[var(--border)]">
                   <td className="px-4 py-3">
-                    <span className="font-medium text-emerald-700 dark:text-emerald-400">Victoria</span> (tu equipo hizo
-                    más juegos)
+                    <span className="font-medium text-emerald-700 dark:text-emerald-400">Victoria</span> (tu equipo ganó
+                    el partido: 2–0 o 2–1 en sets, o ganó el único set cargado)
                   </td>
                   <td className="px-4 py-3 text-center font-semibold text-[var(--foreground)]">3</td>
                 </tr>
                 <tr className="border-b border-[var(--border)]">
                   <td className="px-4 py-3">
-                    <span className="font-medium text-[var(--foreground)]">Empate</span> (mismo número de juegos a
-                    favor)
+                    <span className="font-medium text-[var(--foreground)]">Empate</span> (solo si cargaste{" "}
+                    <strong className="text-[var(--foreground)]">un</strong> set y quedó igual en juegos, ej. 6–6 con
+                    desempate pendiente — caso raro)
                   </td>
                   <td className="px-4 py-3 text-center font-semibold text-[var(--foreground)]">1</td>
                 </tr>
                 <tr>
                   <td className="px-4 py-3">
-                    <span className="font-medium text-[var(--muted)]">Derrota</span>
+                    <span className="font-medium text-[var(--muted)]">Derrota</span> (tu equipo perdió el partido)
                   </td>
                   <td className="px-4 py-3 text-center font-semibold text-[var(--foreground)]">0</td>
                 </tr>
@@ -226,26 +231,46 @@ export default function ReglasPage() {
           </div>
         </Card>
         <p className="text-xs text-[var(--muted)]">
-          En la tabla verás también <strong className="text-[var(--foreground)]">PJ</strong> (partidos jugados),{" "}
-          <strong className="text-[var(--foreground)]">G / P / E</strong> y los puntos totales.
+          En la tabla verás <strong className="text-[var(--foreground)]">PJ</strong> (partidos cerrados),{" "}
+          <strong className="text-[var(--foreground)]">G / P / E</strong> y los puntos totales — siempre a nivel{" "}
+          <strong className="text-[var(--foreground)]">partido</strong>, no por cantidad de sets ganados.
         </p>
       </section>
 
       <section className="space-y-4" aria-labelledby="marcador">
         <SectionTitle id="marcador" icon={<ReglasIconMarcador />}>
-          Marcadores válidos
+          Sets y marcador (mejor de tres)
         </SectionTitle>
         <Card className="space-y-4 p-4 sm:p-5">
           <p className="text-sm leading-relaxed text-[var(--muted)]">
-            Un partido entra en las estadísticas cuando hay un <strong className="text-[var(--foreground)]">marcador
-            real</strong> cargado para ambos equipos. Así evitamos que un 0–0 “en blanco” cuente como empate o partido
-            jugado.
+            En <strong className="text-[var(--foreground)]">Fechas</strong> cargás cada set como juegos a favor del equipo
+            A y del equipo B (como en la cancha: 6–3, 3–6, 6–3, etc.). Las filas vacías se ignoran. Podés sumar o quitar
+            filas si hace falta.
           </p>
+          <ul className="list-inside list-disc space-y-1.5 text-sm text-[var(--muted)]">
+            <li>
+              <strong className="text-[var(--foreground)]">Partido al mejor de tres:</strong> tiene que quedar definido un
+              ganador: el primero que gana <strong className="text-[var(--foreground)]">2 sets</strong> (2–0 o 2–1 en
+              sets).
+            </li>
+            <li>
+              Si después de dos sets va <strong className="text-[var(--foreground)]">1–1</strong> en sets, falta cargar el
+              tercer set; la app no guarda un partido incompleto.
+            </li>
+            <li>
+              <strong className="text-[var(--foreground)]">Solo un set:</strong> si jugaron un solo set y listo, cargás
+              una fila — ese resultado cuenta como el partido entero (útil si el grupo a veces juega un set rápido).
+            </li>
+          </ul>
           <MatchSketch />
-          <p className="text-center text-xs text-[var(--muted)]">Ejemplo: 6–4 → victoria del equipo A.</p>
+          <p className="text-center text-xs text-[var(--muted)]">
+            Ejemplo: 6–3, 3–6 y 6–3 → equipo A gana el partido 2–1 en sets; los cuatro jugadores suman como una victoria
+            o derrota de partido, no tres resultados distintos.
+          </p>
           <div className="rounded-[var(--radius-sm)] border border-amber-500/35 bg-amber-500/10 px-3 py-3 text-sm text-[var(--foreground)]">
-            <strong>Importante:</strong> el marcador <span className="tabular-nums font-semibold">0–0</span> no suma
-            puntos ni partidos. Cuando termine el set, cargá el resultado (por ejemplo 6–4 o 7–5).
+            <strong>Importante:</strong> un set en <span className="tabular-nums font-semibold">0–0</span> no cuenta. Si
+            cargás más de un set, cada set cargado tiene que tener un ganador (no empates tipo 6–6 sin desempate). Cuando
+            termine cada set, anotá los juegos reales (6–4, 7–5, etc.).
           </div>
         </Card>
       </section>
@@ -285,7 +310,8 @@ export default function ReglasPage() {
         <Card className="p-4 sm:p-5">
           <h3 className="text-sm font-semibold text-[var(--foreground)]">De dónde salen los números</h3>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            Solo entran partidos con resultado válido (no 0–0). El flujo es:
+            Solo entran partidos con sets válidos y partido <strong className="text-[var(--foreground)]">cerrado</strong>{" "}
+            (ganador claro al mejor de tres, o un solo set cargado). El flujo es:
           </p>
           <div className="mt-4">
             <FlowDiagram />
