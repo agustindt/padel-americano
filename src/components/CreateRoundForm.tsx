@@ -63,6 +63,19 @@ export function CreateRoundForm() {
             className={inputClassName}
           />
         </div>
+        <div>
+          <label htmlFor="roundStatus" className="mb-1 block text-xs font-medium text-[var(--muted)]">
+            Estado de la fecha
+          </label>
+          <select id="roundStatus" name="roundStatus" defaultValue="CONFIRMED" className={inputClassName}>
+            <option value="DRAFT">Borrador (no entra en tabla ni calendario)</option>
+            <option value="CONFIRMED">Confirmada</option>
+            <option value="PLAYED">Jugada</option>
+          </select>
+          <p className="mt-1 text-xs text-[var(--muted)]">
+            El sorteo mezcla a todos por igual en cada fecha (Fisher–Yates); no favorece a nadie de forma fija.
+          </p>
+        </div>
         {state.error && (
           <p className="text-sm text-red-600 dark:text-red-400" role="alert">
             {state.error}

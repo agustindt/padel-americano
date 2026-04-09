@@ -349,6 +349,16 @@ export default function ReglasPage() {
             </ul>
           </Card>
         </div>
+        <Card className="p-4 sm:p-5">
+          <h3 className="text-sm font-semibold text-[var(--foreground)]">Estado de cada fecha</h3>
+          <p className="mt-2 text-sm text-[var(--muted)]">
+            <strong className="text-[var(--foreground)]">Borrador</strong> es tentativa: esos partidos{" "}
+            <strong className="text-[var(--foreground)]">no suman en la tabla</strong> ni entran al calendario .ics.{" "}
+            <strong className="text-[var(--foreground)]">Confirmada</strong> cuenta para la tabla y puede aparecer en el
+            calendario si tiene día y hora. <strong className="text-[var(--foreground)]">Jugada</strong> marca la fecha
+            como cerrada a nivel organización (los resultados siguen siendo los sets cargados).
+          </p>
+        </Card>
       </section>
 
       <section className="space-y-4" aria-labelledby="probabilidad">

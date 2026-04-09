@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Bebas_Neue, DM_Sans } from "next/font/google";
 import { ThemeScript } from "@/components/ThemeScript";
+import { ToasterClient } from "@/components/ToasterClient";
 import { BRAND_NAME, BRAND_TAGLINE } from "@/lib/brand";
 import "./globals.css";
 
@@ -21,6 +22,16 @@ export const metadata: Metadata = {
     template: `%s · ${BRAND_NAME}`,
   },
   description: `${BRAND_TAGLINE}. Torneo americano: parejas al azar, puntos individuales.`,
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: BRAND_NAME,
+    statusBarStyle: "default",
+  },
+  icons: {
+    icon: "/icons/pwa-icon.svg",
+    apple: "/icons/pwa-icon.svg",
+  },
 };
 
 export const viewport: Viewport = {
@@ -50,6 +61,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full">
         <div className="page-shell">{children}</div>
+        <ToasterClient />
       </body>
     </html>
   );

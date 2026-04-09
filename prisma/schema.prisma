@@ -18,12 +18,29 @@ enum MatchSource {
   MANUAL
 }
 
+enum RoundStatus {
+  DRAFT
+  CONFIRMED
+  PLAYED
+}
+
+model Group {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  users User[]
+  rounds Round[]
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
   name         String
   passwordHash String
   createdAt    DateTime @default(now())
+  groupId      String
+  group        Group    @relation(fields: [groupId], references: [id], onDelete: Restrict)
 
   matchesAsA1 Match[]       @relation("MatchPlayerA1")
   matchesAsA2 Match[]       @relation("MatchPlayerA2")
@@ -33,14 +50,17 @@ model User {
 }
 
 model Round {
-  id          String    @id @default(cuid())
+  id          String       @id @default(cuid())
   title       String?
   scheduledAt DateTime?
   venue       String?
   mapsUrl     String?
-  sortOrder   Int       @default(0)
-  createdAt   DateTime  @default(now())
-  kind        RoundKind @default(AMERICANO_RANDOM)
+  sortOrder   Int          @default(0)
+  createdAt   DateTime     @default(now())
+  kind        RoundKind    @default(AMERICANO_RANDOM)
+  status      RoundStatus  @default(CONFIRMED)
+  groupId     String
+  group       Group        @relation(fields: [groupId], references: [id], onDelete: Restrict)
 
   matches Match[]
   sitOuts RoundSitOut[]

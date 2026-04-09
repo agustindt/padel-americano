@@ -28,8 +28,14 @@ export async function registerUser(
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) return { error: "Ese email ya está registrado." };
 
+  const defaultGroup =
+    (await prisma.group.findFirst({ orderBy: { createdAt: "asc" } })) ??
+    (await prisma.group.create({ data: { name: "Grupo" } }));
+
   const passwordHash = await bcrypt.hash(password, 12);
-  await prisma.user.create({ data: { name, email, passwordHash } });
+  await prisma.user.create({
+    data: { name, email, passwordHash, groupId: defaultGroup.id },
+  });
 
   try {
     await signIn("credentials", {

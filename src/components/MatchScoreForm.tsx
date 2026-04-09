@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import { deleteMatchAction, saveMatchScoreAction, type ActionResult } from "@/app/actions/fechas";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -77,6 +78,20 @@ export function MatchScoreForm({
   const [state, saveAction, savePending] = useActionState(saveMatchScoreAction, initial);
   const [delState, deleteAction, deletePending] = useActionState(deleteMatchAction, initial);
   const [rows, setRows] = useState<Row[]>(() => rowsFromSets(initialSetScores));
+  const saveCycle = useRef(false);
+
+  useEffect(() => {
+    if (savePending) {
+      saveCycle.current = true;
+      return;
+    }
+    if (saveCycle.current) {
+      if (state.ok) {
+        toast.success("Resultado guardado");
+      }
+      saveCycle.current = false;
+    }
+  }, [savePending, state]);
 
   const setsJson = useMemo(() => {
     const built = buildSetsFromRows(rows);
@@ -214,11 +229,18 @@ export function MatchScoreForm({
             </span>
           )}
         </p>
-        {state.error && (
-          <p className="mt-2 text-sm text-red-600 dark:text-red-400" role="alert">
-            {state.error}
-          </p>
-        )}
+        <div aria-live="assertive" className="mt-2 min-h-0 space-y-1">
+          {state.error && (
+            <p className="text-sm text-red-600 dark:text-red-400" role="alert">
+              {state.error}
+            </p>
+          )}
+          {delState.error && (
+            <p className="text-sm text-red-600 dark:text-red-400" role="alert">
+              {delState.error}
+            </p>
+          )}
+        </div>
         <div className="mt-4 flex flex-col gap-2 sm:mt-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <Button
             type="submit"
@@ -236,7 +258,7 @@ export function MatchScoreForm({
             variant="outline"
             size="md"
             disabled={savePending || deletePending}
-            className="w-full border-red-300/80 text-red-700 hover:bg-red-500/10 dark:border-red-800 dark:text-red-400 sm:w-auto sm:text-sm"
+            className="w-full border-red-600 text-red-900 shadow-sm hover:bg-red-500/15 dark:border-red-500 dark:text-red-100 dark:hover:bg-red-950/60 sm:w-auto sm:text-sm"
             onClick={(e) => {
               if (
                 !confirm(
@@ -251,11 +273,6 @@ export function MatchScoreForm({
           </Button>
         </div>
       </form>
-      {delState.error && (
-        <p className="mt-2 text-sm text-red-600 dark:text-red-400" role="alert">
-          {delState.error}
-        </p>
-      )}
     </Card>
   );
 }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { computeStandings } from "@/lib/standings";
 import { prisma } from "@/lib/prisma";
@@ -11,13 +12,22 @@ export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const session = await auth();
+  const groupId = session?.user?.groupId;
+  if (!groupId) {
+    redirect("/login");
+  }
+
   const now = new Date();
   const [standings, userCount, roundCount, upcoming] = await Promise.all([
-    computeStandings(),
-    prisma.user.count(),
-    prisma.round.count(),
+    computeStandings(groupId),
+    prisma.user.count({ where: { groupId } }),
+    prisma.round.count({ where: { groupId } }),
     prisma.round.findFirst({
-      where: { scheduledAt: { gte: now } },
+      where: {
+        groupId,
+        scheduledAt: { gte: now },
+        status: { in: ["CONFIRMED", "PLAYED"] },
+      },
       orderBy: { scheduledAt: "asc" },
     }),
   ]);

@@ -36,12 +36,14 @@ export function ManualMatchForm({ users, statsByUserId }: ManualMatchFormProps) 
   const [b2, setB2] = useState("");
 
   useEffect(() => {
-    if (state.ok) {
+    if (!state.ok) return;
+    const t = window.setTimeout(() => {
       setA1("");
       setA2("");
       setB1("");
       setB2("");
-    }
+    }, 0);
+    return () => window.clearTimeout(t);
   }, [state.ok]);
 
   const estimate = useMemo(() => {

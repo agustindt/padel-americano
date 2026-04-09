@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -18,7 +20,16 @@ function formatWinRate(winRate: number | null, played: number): string {
 }
 
 export default async function PosicionesPage() {
-  const [standings, userCount] = await Promise.all([computeStandings(), prisma.user.count()]);
+  const session = await auth();
+  const groupId = session?.user?.groupId;
+  if (!groupId) {
+    redirect("/login");
+  }
+
+  const [standings, userCount] = await Promise.all([
+    computeStandings(groupId),
+    prisma.user.count({ where: { groupId } }),
+  ]);
   const minGames = getMinGamesForOfficialRanking();
 
   return (
@@ -27,6 +38,17 @@ export default async function PosicionesPage() {
         title="Tabla de posiciones"
         description={`Solo cuentan partidos con resultado cargado; el marcador 0–0 no suma (hay que cargar el resultado real). Sistema: 3 puntos por victoria, 1 por empate, 0 por derrota. El orden prioriza el porcentaje de victorias entre quienes jugó al menos ${minGames} partidos; quienes tienen menos partidos aparecen abajo hasta alcanzar ese mínimo, para que un récord corto no adelante a quien lleva más volumen.`}
       />
+
+      {userCount > 0 && (
+        <p>
+          <a
+            href="/api/standings/pdf"
+            className="inline-flex min-h-11 touch-manipulation items-center text-sm font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
+          >
+            Descargar PDF de la tabla
+          </a>
+        </p>
+      )}
 
       {userCount === 0 ? (
         <EmptyState
@@ -81,7 +103,12 @@ export default async function PosicionesPage() {
                   >
                     <td className="px-3 py-3 text-[var(--muted)] sm:px-4">{i + 1}</td>
                     <td className="min-w-0 max-w-[42vw] px-3 py-3 font-medium break-words sm:max-w-none sm:px-4">
-                      <span className="align-middle">{row.name}</span>
+                      <Link
+                        href={`/jugador/${row.userId}`}
+                        className="align-middle text-[var(--foreground)] underline-offset-2 hover:underline"
+                      >
+                        {row.name}
+                      </Link>
                       {!row.meetsMinimumGames && row.played > 0 && (
                         <span className="mt-0.5 block text-xs font-normal text-[var(--muted)]">
                           Menos de {minGames} PJ (fuera del bloque principal)

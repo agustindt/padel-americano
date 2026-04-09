@@ -17,10 +17,13 @@ export type StandingRow = {
   meetsMinimumGames: boolean;
 };
 
-/** 3 pts victoria, 1 empate, 0 derrota. Partidos al mejor de 3 sets o un solo set. */
-export async function computeStandings(): Promise<StandingRow[]> {
+/** 3 pts victoria, 1 empate, 0 derrota. Ignora partidos de fechas en borrador. */
+export async function computeStandings(groupId: string): Promise<StandingRow[]> {
   const minGames = getMinGamesForOfficialRanking();
-  const users = await prisma.user.findMany({ orderBy: { name: "asc" } });
+  const users = await prisma.user.findMany({
+    where: { groupId },
+    orderBy: { name: "asc" },
+  });
   const byId = new Map<string, StandingRow>();
   for (const u of users) {
     byId.set(u.id, {
@@ -37,7 +40,13 @@ export async function computeStandings(): Promise<StandingRow[]> {
   }
 
   const finished = await prisma.match.findMany({
-    where: { setScores: { not: Prisma.DbNull } },
+    where: {
+      setScores: { not: Prisma.DbNull },
+      round: {
+        groupId,
+        status: { not: "DRAFT" },
+      },
+    },
   });
 
   const addTeam = (
