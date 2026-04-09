@@ -4,6 +4,10 @@
 import "dotenv/config";
 import { defineConfig, env } from "prisma/config";
 
+const databaseUrl = env("DATABASE_URL");
+/** Migraciones: en Vercel + Neon usá DIRECT_URL (conexión directa, sin pooler) para evitar P1002 advisory lock timeout. */
+const directUrl = process.env.DIRECT_URL ?? databaseUrl;
+
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
@@ -11,6 +15,7 @@ export default defineConfig({
   },
   engine: "classic",
   datasource: {
-    url: env("DATABASE_URL"),
+    url: databaseUrl,
+    directUrl,
   },
 });
