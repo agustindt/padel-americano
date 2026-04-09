@@ -100,7 +100,7 @@ export default async function FechasPage() {
                 <div className="space-y-3">
                   {round.matches.map((m) => (
                     <MatchScoreForm
-                      key={m.id}
+                      key={`${m.id}-${m.scoreTeamA ?? "x"}-${m.scoreTeamB ?? "x"}`}
                       matchId={m.id}
                       courtLabel={m.courtLabel}
                       a1={m.playerA1}

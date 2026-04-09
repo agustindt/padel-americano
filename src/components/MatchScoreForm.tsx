@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { saveMatchScoreAction, type ActionResult } from "@/app/actions/fechas";
+import { deleteMatchAction, saveMatchScoreAction, type ActionResult } from "@/app/actions/fechas";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { inputClassName } from "@/components/ui/input-styles";
@@ -37,11 +37,15 @@ export function MatchScoreForm({
   scoreTeamA,
   scoreTeamB,
 }: MatchScoreFormProps) {
-  const [state, formAction, pending] = useActionState(saveMatchScoreAction, initial);
+  const [state, saveAction, savePending] = useActionState(saveMatchScoreAction, initial);
+  const [delState, deleteAction, deletePending] = useActionState(deleteMatchAction, initial);
+
+  const hasSavedScore =
+    scoreTeamA !== null && scoreTeamB !== null && !(scoreTeamA === 0 && scoreTeamB === 0);
 
   return (
     <Card className="p-4">
-      <form action={formAction}>
+      <form action={saveAction}>
         <input type="hidden" name="matchId" value={matchId} />
         {courtLabel && (
           <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-[var(--accent)]">{courtLabel}</p>
@@ -90,16 +94,55 @@ export function MatchScoreForm({
         </div>
         <p className="mt-2 text-xs text-[var(--muted)]">
           El marcador 0–0 no cuenta en la tabla: cuando termine el partido, cargá el resultado real (ej. 6–4).
+          {hasSavedScore && (
+            <span className="mt-1 block">
+              Podés <strong className="font-medium text-[var(--foreground)]">modificar el marcador</strong> y volver a
+              guardar; la tabla se actualiza con los valores nuevos.
+            </span>
+          )}
         </p>
         {state.error && (
           <p className="mt-2 text-sm text-red-600 dark:text-red-400" role="alert">
             {state.error}
           </p>
         )}
-        <Button type="submit" variant="outline" size="md" disabled={pending} className="mt-4 w-full sm:mt-3 sm:w-auto sm:text-sm">
-          {pending ? "Guardando…" : "Guardar resultado"}
-        </Button>
+        <div className="mt-4 flex flex-col gap-2 sm:mt-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+          <Button
+            type="submit"
+            variant="outline"
+            size="md"
+            disabled={savePending || deletePending}
+            className="w-full sm:w-auto sm:text-sm"
+          >
+            {savePending ? "Guardando…" : hasSavedScore ? "Actualizar resultado" : "Guardar resultado"}
+          </Button>
+          <Button
+            type="submit"
+            formAction={deleteAction}
+            formNoValidate
+            variant="outline"
+            size="md"
+            disabled={savePending || deletePending}
+            className="w-full border-red-300/80 text-red-700 hover:bg-red-500/10 dark:border-red-800 dark:text-red-400 sm:w-auto sm:text-sm"
+            onClick={(e) => {
+              if (
+                !confirm(
+                  "¿Eliminar este partido? La tabla se recalcula sin este resultado. Si era la única fecha manual, también se quita la fecha vacía.",
+                )
+              ) {
+                e.preventDefault();
+              }
+            }}
+          >
+            {deletePending ? "Eliminando…" : "Eliminar partido"}
+          </Button>
+        </div>
       </form>
+      {delState.error && (
+        <p className="mt-2 text-sm text-red-600 dark:text-red-400" role="alert">
+          {delState.error}
+        </p>
+      )}
     </Card>
   );
 }

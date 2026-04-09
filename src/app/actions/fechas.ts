@@ -163,3 +163,33 @@ export async function saveMatchScoreAction(
   revalidatePath("/posiciones");
   return { ok: true };
 }
+
+export async function deleteMatchAction(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
+  const session = await auth();
+  if (!session?.user?.id) return { error: "No autorizado." };
+
+  const matchId = String(formData.get("matchId") ?? "");
+  if (!matchId) return { error: "Partido inválido." };
+
+  const match = await prisma.match.findUnique({
+    where: { id: matchId },
+    select: { id: true, roundId: true },
+  });
+  if (!match) return { error: "No se encontró el partido." };
+
+  await prisma.$transaction(async (tx) => {
+    await tx.match.delete({ where: { id: match.id } });
+    const remaining = await tx.match.count({ where: { roundId: match.roundId } });
+    if (remaining === 0) {
+      await tx.round.delete({ where: { id: match.roundId } });
+    }
+  });
+
+  revalidatePath("/");
+  revalidatePath("/fechas");
+  revalidatePath("/posiciones");
+  return { ok: true };
+}
