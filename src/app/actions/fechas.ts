@@ -56,6 +56,7 @@ export async function createRoundAction(
         venue: venue ?? undefined,
         mapsUrl: mapsUrl ?? undefined,
         sortOrder,
+        kind: "AMERICANO_RANDOM",
       },
     });
     let court = 1;
@@ -82,6 +83,52 @@ export async function createRoundAction(
   return { ok: true };
 }
 
+export async function createManualMatchAction(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
+  const session = await auth();
+  if (!session?.user?.id) return { error: "No autorizado." };
+
+  const title = String(formData.get("title") ?? "").trim() || "Partido manual";
+  const a1 = String(formData.get("playerA1Id") ?? "");
+  const a2 = String(formData.get("playerA2Id") ?? "");
+  const b1 = String(formData.get("playerB1Id") ?? "");
+  const b2 = String(formData.get("playerB2Id") ?? "");
+  const ids = [a1, a2, b1, b2];
+  if (ids.some((id) => !id)) return { error: "Elegí los cuatro jugadores." };
+  if (new Set(ids).size !== 4) return { error: "Los cuatro jugadores tienen que ser distintos." };
+
+  const last = await prisma.round.findFirst({ orderBy: { sortOrder: "desc" } });
+  const sortOrder = (last?.sortOrder ?? 0) + 1;
+
+  await prisma.$transaction(async (tx) => {
+    const round = await tx.round.create({
+      data: {
+        title,
+        sortOrder,
+        kind: "MANUAL_SINGLE",
+      },
+    });
+    await tx.match.create({
+      data: {
+        roundId: round.id,
+        courtLabel: "Cancha 1",
+        source: "MANUAL",
+        playerA1Id: a1,
+        playerA2Id: a2,
+        playerB1Id: b1,
+        playerB2Id: b2,
+      },
+    });
+  });
+
+  revalidatePath("/");
+  revalidatePath("/fechas");
+  revalidatePath("/posiciones");
+  return { ok: true };
+}
+
 export async function saveMatchScoreAction(
   _prev: ActionResult,
   formData: FormData,
@@ -99,6 +146,11 @@ export async function saveMatchScoreAction(
   }
   if (scoreA < 0 || scoreB < 0) {
     return { error: "Los juegos no pueden ser negativos." };
+  }
+  if (scoreA === 0 && scoreB === 0) {
+    return {
+      error: "0–0 no cuenta como partido jugado. Cargá el marcador real (ej. 6–4).",
+    };
   }
 
   await prisma.match.update({

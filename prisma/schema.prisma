@@ -8,6 +8,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum RoundKind {
+  AMERICANO_RANDOM
+  MANUAL_SINGLE
+}
+
+enum MatchSource {
+  AUTO
+  MANUAL
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -23,13 +33,14 @@ model User {
 }
 
 model Round {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   title       String?
   scheduledAt DateTime?
   venue       String?
   mapsUrl     String?
-  sortOrder   Int      @default(0)
-  createdAt   DateTime @default(now())
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  kind        RoundKind @default(AMERICANO_RANDOM)
 
   matches Match[]
   sitOuts RoundSitOut[]
@@ -46,9 +57,10 @@ model RoundSitOut {
 }
 
 model Match {
-  id         String @id @default(cuid())
+  id         String      @id @default(cuid())
   roundId    String
   courtLabel String?
+  source     MatchSource @default(AUTO)
 
   playerA1Id String
   playerA2Id String

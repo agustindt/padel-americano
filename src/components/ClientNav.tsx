@@ -15,6 +15,7 @@ export function ClientNav({ userName }: ClientNavProps) {
       <nav className="flex flex-1 flex-wrap items-center gap-1 sm:flex-none">
         <NavLink href="/posiciones">Tabla</NavLink>
         <NavLink href="/fechas">Fechas</NavLink>
+        <NavLink href="/reglas">Reglas</NavLink>
       </nav>
       <div className="ml-auto flex items-center gap-2 sm:ml-0">
         <ThemeToggle />

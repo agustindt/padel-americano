@@ -88,6 +88,9 @@ export function MatchScoreForm({
             />
           </div>
         </div>
+        <p className="mt-2 text-xs text-[var(--muted)]">
+          El marcador 0–0 no cuenta en la tabla: cuando termine el partido, cargá el resultado real (ej. 6–4).
+        </p>
         {state.error && (
           <p className="mt-2 text-sm text-red-600 dark:text-red-400" role="alert">
             {state.error}

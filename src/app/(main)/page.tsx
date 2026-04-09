@@ -97,6 +97,24 @@ export default async function HomePage() {
           </Card>
         </Link>
       </div>
+
+      <Link href="/reglas" className="group block touch-manipulation active:scale-[0.99]">
+        <Card className="border-[var(--accent-muted)]/35 bg-[var(--surface-muted)]/40 p-4 transition group-hover:border-[var(--accent)] group-hover:shadow-[var(--shadow-md)] sm:p-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="font-display text-2xl uppercase tracking-wide text-[var(--accent-strong)] group-hover:text-[var(--accent)]">
+                Reglas
+              </h2>
+              <p className="mt-2 max-w-xl text-sm text-[var(--muted)]">
+                Puntos, tabla, fechas manuales y cómo lee la app el marcador — explicado con tablas y diagramas.
+              </p>
+            </div>
+            <span className="shrink-0 text-sm font-medium text-[var(--accent)] group-hover:underline sm:pr-2">
+              Ver todo →
+            </span>
+          </div>
+        </Card>
+      </Link>
     </div>
   );
 }
