@@ -232,6 +232,11 @@ export function MatchScoreForm({
             {clientPreview && clientPreview.kind === "incomplete" && (
               <p className="mt-2 text-xs text-amber-700 dark:text-amber-400">{clientPreview.message}</p>
             )}
+            {clientPreview && clientPreview.kind === "counted" && clientPreview.draw && (
+              <p className="mt-2 text-xs font-medium text-[var(--foreground)]">
+                Resultado: empate a nivel partido (1 pt cada bando al guardar).
+              </p>
+            )}
             {clientPreview && clientPreview.kind === "invalid" && rows.some((r) => r.a.trim() || r.b.trim()) && (
               <p className="mt-2 text-xs text-amber-700 dark:text-amber-400">{clientPreview.message}</p>
             )}
@@ -239,8 +244,9 @@ export function MatchScoreForm({
         </div>
 
         <p className="mt-4 text-xs text-[var(--muted)]">
-          Los sets en blanco se ignoran. Un partido al mejor de tres se cierra cuando un equipo gana 2 sets (ej. 6–3, 3–6,
-          6–3). Si solo jugaron un set, cargá solo ese renglón.
+          Los sets en blanco se ignoran. Gana el partido el primero con 2 sets ganados, o un solo set si solo jugaron una
+          manga. Los sets con el mismo juego a ambos lados (6–6, etc.) son empate de set y permiten dejar el partido
+          empatado en los casos de las reglas. Si va 1–1 en sets, falta un tercer set o un cierre con empate.
           {hasSavedScore && (
             <span className="mt-1 block">
               Podés <strong className="font-medium text-[var(--foreground)]">cambiar los sets</strong> y volver a guardar.

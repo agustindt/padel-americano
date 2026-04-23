@@ -31,9 +31,11 @@ export type MatchVerdict =
   | { kind: "invalid"; message: string };
 
 /**
- * Reglas: al mejor de tres sets (como jugás en la cancha).
- * - Un solo set cargado: vale como partido de un set (retrocompatible).
- * - Varios sets: tiene que quedar definido un ganador (2 sets para el mismo equipo), sin empates por set.
+ * Reglas: al mejor de dos sets ganados por un lado (típico al mejor de tres en cancha).
+ * - Un set empatado (ej. 6–6) no suma a ningún “set ganado”.
+ * - Empate a nivel partido: un solo set empatado; o 1–1 en sets ganados con al menos un set empatado
+ *   (ej. 6–4, 4–6, 6–6); o todos los sets empatados (ej. 6–6, 3–3).
+ * - Sigue al mejor de: el primero en llegar a 2 sets ganados gana el partido.
  */
 export function verdictFromSets(sets: GameSet[]): MatchVerdict {
   const v = normalizeSets(sets);
@@ -52,21 +54,20 @@ export function verdictFromSets(sets: GameSet[]): MatchVerdict {
 
   let winsA = 0;
   let winsB = 0;
+  let tieSets = 0;
   for (const s of v) {
     if (s.a === s.b) {
-      if (v.length === 1) {
-        return { kind: "counted", draw: true, teamAWon: null };
-      }
-      return {
-        kind: "invalid",
-        message: "Si cargás más de un set, cada set tiene que tener ganador (no empates como 6–6 sin desempate).",
-      };
+      tieSets++;
+      continue;
     }
     if (s.a > s.b) winsA++;
     else winsB++;
   }
 
   if (v.length === 1) {
+    if (tieSets === 1) {
+      return { kind: "counted", draw: true, teamAWon: null };
+    }
     const s = v[0];
     return { kind: "counted", draw: false, teamAWon: s.a > s.b };
   }
@@ -78,16 +79,24 @@ export function verdictFromSets(sets: GameSet[]): MatchVerdict {
     return { kind: "counted", draw: false, teamAWon: false };
   }
 
+  if (winsA === 1 && winsB === 1 && tieSets >= 1) {
+    return { kind: "counted", draw: true, teamAWon: null };
+  }
+
+  if (tieSets === v.length) {
+    return { kind: "counted", draw: true, teamAWon: null };
+  }
+
   if (v.length === 2 && winsA === 1 && winsB === 1) {
     return {
       kind: "incomplete",
-      message: "Quedó 1–1 en sets: falta el tercer set (o corregí si hubo un error).",
+      message: "Quedó 1–1 en sets: falta un tercer set (o cargá un set empatado si el partido quedó empatado).",
     };
   }
 
   return {
     kind: "incomplete",
-    message: "Al mejor de tres tiene que ganar un equipo 2 sets. Revisá los resultados.",
+    message: "Aún no hay 2 sets ganados para un bando. Completá otro set o ajustá el marcador.",
   };
 }
 

@@ -16,7 +16,7 @@ describe("verdictFromSets", () => {
     expect(v).toEqual({ kind: "counted", draw: false, teamAWon: true });
   });
 
-  it("returns incomplete for 1–1 in sets", () => {
+  it("returns incomplete for 1–1 in sets (two non-tie sets, no third)", () => {
     const v = verdictFromSets([
       { a: 6, b: 4 },
       { a: 4, b: 6 },
@@ -24,12 +24,26 @@ describe("verdictFromSets", () => {
     expect(v.kind).toBe("incomplete");
   });
 
-  it("rejects tie sets when more than one set", () => {
+  it("allows tie as third set for match draw (1 set win each, then tie)", () => {
     const v = verdictFromSets([
       { a: 6, b: 4 },
+      { a: 4, b: 6 },
       { a: 6, b: 6 },
     ]);
-    expect(v.kind).toBe("invalid");
+    expect(v).toEqual({ kind: "counted", draw: true, teamAWon: null });
+  });
+
+  it("allows tie in second set when first set decided (incomplete until more sets)", () => {
+    const v = verdictFromSets([{ a: 6, b: 4 }, { a: 6, b: 6 }]);
+    expect(v.kind).toBe("incomplete");
+  });
+
+  it("match draw when all sets are ties (two or more)", () => {
+    const v = verdictFromSets([
+      { a: 6, b: 6 },
+      { a: 3, b: 3 },
+    ]);
+    expect(v).toEqual({ kind: "counted", draw: true, teamAWon: null });
   });
 });
 

@@ -214,9 +214,9 @@ export default function ReglasPage() {
                 </tr>
                 <tr className="border-b border-[var(--border)]">
                   <td className="px-4 py-3">
-                    <span className="font-medium text-[var(--foreground)]">Empate</span> (solo si cargaste{" "}
-                    <strong className="text-[var(--foreground)]">un</strong> set y quedó igual en juegos, ej. 6–6 con
-                    desempate pendiente — caso raro)
+                    <span className="font-medium text-[var(--foreground)]">Empate</span> a nivel partido: un set igualado
+                    (ej. 6–6), o 1–1 en sets ganados con al menos un set empatado (ej. 6–4, 4–6, 6–6), o todos los sets
+                    empatados.
                   </td>
                   <td className="px-4 py-3 text-center font-semibold text-[var(--foreground)]">1</td>
                 </tr>
@@ -254,8 +254,11 @@ export default function ReglasPage() {
               sets).
             </li>
             <li>
-              Si después de dos sets va <strong className="text-[var(--foreground)]">1–1</strong> en sets, falta cargar el
-              tercer set; la app no guarda un partido incompleto.
+              Si va <strong className="text-[var(--foreground)]">1–1</strong> en sets, podés cargar un tercer set. Si
+              gana un equipo, vence el partido. Si el tercer set queda empatado (6–6, etc.), el partido se registra como{" "}
+              <strong className="text-[var(--foreground)]">empate</strong>. Con 1–1 y solo{" "}
+              <strong className="text-[var(--foreground)]">dos</strong> sets sin empate, el partido queda incompleto hasta
+              agregar un tercer set o un set con empate o victoria.
             </li>
             <li>
               <strong className="text-[var(--foreground)]">Solo un set:</strong> si jugaron un solo set y listo, cargás
@@ -268,9 +271,10 @@ export default function ReglasPage() {
             o derrota de partido, no tres resultados distintos.
           </p>
           <div className="rounded-[var(--radius-sm)] border border-amber-500/35 bg-amber-500/10 px-3 py-3 text-sm text-[var(--foreground)]">
-            <strong>Importante:</strong> un set en <span className="tabular-nums font-semibold">0–0</span> no cuenta. Si
-            cargás más de un set, cada set cargado tiene que tener un ganador (no empates tipo 6–6 sin desempate). Cuando
-            termine cada set, anotá los juegos reales (6–4, 7–5, etc.).
+            <strong>Importante:</strong> un set en <span className="tabular-nums font-semibold">0–0</span> no cuenta. Los
+            sets empatados en juegos (6–6, etc.) sí se pueden cargar: no asignan el set a un bando, no cuentan como victoria
+            de set, y sirven para cerrar un partido en empate cuando aplica. El resto del tiempo, anotá juegos reales
+            (6–4, 7–5, etc.).
           </div>
         </Card>
       </section>
