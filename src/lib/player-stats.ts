@@ -53,6 +53,15 @@ export async function getPlayerMatchHistory(
     const teamBWon = v.teamAWon === false;
     const won = v.draw ? null : wasTeamA ? teamAWon : teamBWon;
 
+    const labelB =
+      m.playerB2 == null
+        ? m.playerB1.name
+        : `${m.playerB1.name} / ${m.playerB2.name}`;
+    const labelA =
+      m.playerA2 == null
+        ? m.playerA1.name
+        : `${m.playerA1.name} / ${m.playerA2.name}`;
+
     rows.push({
       matchId: m.id,
       roundTitle: m.round.title,
@@ -61,9 +70,7 @@ export async function getPlayerMatchHistory(
       display: formatSetsDisplay(sets),
       won,
       wasTeamA,
-      opponentNames: wasTeamA
-        ? `${m.playerB1.name} / ${m.playerB2.name}`
-        : `${m.playerA1.name} / ${m.playerA2.name}`,
+      opponentNames: wasTeamA ? labelB : labelA,
     });
     if (rows.length >= limit) break;
   }
@@ -97,9 +104,9 @@ export async function getTeammateFrequency(
   const counts = new Map<string, number>();
   for (const m of matches) {
     let partnerName: string | null = null;
-    if (m.playerA1Id === userId) partnerName = m.playerA2.name;
+    if (m.playerA1Id === userId) partnerName = m.playerA2?.name ?? null;
     else if (m.playerA2Id === userId) partnerName = m.playerA1.name;
-    else if (m.playerB1Id === userId) partnerName = m.playerB2.name;
+    else if (m.playerB1Id === userId) partnerName = m.playerB2?.name ?? null;
     else if (m.playerB2Id === userId) partnerName = m.playerB1.name;
     if (partnerName) {
       counts.set(partnerName, (counts.get(partnerName) ?? 0) + 1);

@@ -17,9 +17,18 @@ export function CreateRoundForm() {
         <div>
           <h2 className="font-display text-2xl uppercase tracking-wide text-[var(--foreground)]">Nueva fecha</h2>
           <p className="mt-1 text-xs text-[var(--muted)]">
-            Se sortean parejas y cruces al azar entre todos los jugadores dados de alta. Quienes sobran (menos de 4
-            en el último grupo) descansan esa fecha.
+            Elegí si la fecha es en parejas (clásico) o 1v1. En ambos casos se sortean cruces; quienes sobran (sin pareja
+            completa o sin rival) descansan.
           </p>
+        </div>
+        <div>
+          <label htmlFor="roundFormat" className="mb-1 block text-xs font-medium text-[var(--muted)]">
+            Tipo de fecha
+          </label>
+          <select id="roundFormat" name="roundFormat" defaultValue="americano" className={inputClassName}>
+            <option value="americano">Parejas (4+ jugadores, bloques de 4)</option>
+            <option value="1v1">1v1 (2+ jugadores, de a dos por cancha)</option>
+          </select>
         </div>
         <div>
           <label htmlFor="title" className="mb-1 block text-xs font-medium text-[var(--muted)]">
@@ -82,7 +91,7 @@ export function CreateRoundForm() {
           </p>
         )}
         <Button type="submit" disabled={pending} className="w-full sm:w-auto">
-          {pending ? "Sorteando…" : "Crear fecha y cruces"}
+          {pending ? "Sorteando…" : "Crear fecha"}
         </Button>
       </form>
     </Card>

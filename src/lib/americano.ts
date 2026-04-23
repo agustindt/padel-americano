@@ -27,3 +27,21 @@ export function planRoundMatches(userIds: string[]): {
 
   return { matches, sitOut: pool };
 }
+
+/**
+ * Cruces 1v1: de a dos jugadores → un partido. El resto descansa.
+ */
+export function planRoundMatches1v1(userIds: string[]): {
+  matches: { a1: string; b1: string }[];
+  sitOut: string[];
+} {
+  const pool = shuffle(userIds);
+  const matches: { a1: string; b1: string }[] = [];
+
+  while (pool.length >= 2) {
+    const [p1, p2] = shuffle(pool.splice(0, 2));
+    matches.push({ a1: p1, b1: p2 });
+  }
+
+  return { matches, sitOut: pool };
+}

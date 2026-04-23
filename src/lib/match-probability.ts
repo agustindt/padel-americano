@@ -32,6 +32,18 @@ export function estimateTeamWinProbability(
   return { teamA: sa / sum, teamB: sb / sum };
 }
 
+/** P(A1 gana) para partido 1v1. */
+export function estimate1v1WinProbability(
+  a: PlayerStrengthInput,
+  b: PlayerStrengthInput,
+): TeamWinEstimate {
+  const sa = playerStrength(a);
+  const sb = playerStrength(b);
+  const sum = sa + sb;
+  if (sum <= 0) return { teamA: 0.5, teamB: 0.5 };
+  return { teamA: sa / sum, teamB: sb / sum };
+}
+
 export function formatPct(x: number): string {
   return `${Math.round(x * 100)}%`;
 }

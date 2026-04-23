@@ -1,4 +1,5 @@
 import { CreateRoundForm } from "@/components/CreateRoundForm";
+import { Manual1v1MatchForm } from "@/components/Manual1v1MatchForm";
 import { ManualMatchForm } from "@/components/ManualMatchForm";
 import { MatchScoreForm } from "@/components/MatchScoreForm";
 import { RoundStatusForm } from "@/components/RoundStatusForm";
@@ -23,6 +24,12 @@ const STATUS_BADGE: Record<string, string> = {
   DRAFT: "Borrador",
   CONFIRMED: "Confirmada",
   PLAYED: "Jugada",
+};
+
+const KIND_BADGE: Partial<Record<string, { label: string; className?: string }>> = {
+  MANUAL_SINGLE: { label: "Manual parejas" },
+  MANUAL_ONE_V_ONE: { label: "Manual 1v1" },
+  ONE_V_ONE_RANDOM: { label: "1v1 sorteo" },
 };
 
 export default async function FechasPage() {
@@ -67,7 +74,7 @@ export default async function FechasPage() {
     <div className="space-y-8">
       <PageHeader
         title="Fechas y cruces"
-        description="Podés crear una fecha con sorteo para todo el grupo o un partido manual con cuatro jugadores elegidos. Cargá los juegos de cada partido (ej. 6–4) para actualizar la tabla; el 0–0 no suma hasta que pongas el marcador real."
+        description="Fecha con sorteo (parejas o 1v1), o partido manual. Cargá los juegos (ej. 6–4) para actualizar la tabla; el 0–0 no suma hasta que cargues el marcador real."
       />
 
       <p className="text-sm">
@@ -82,14 +89,17 @@ export default async function FechasPage() {
 
       <CreateRoundForm />
 
-      <ManualMatchForm users={users} statsByUserId={statsByUserId} />
+      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
+        <ManualMatchForm users={users} statsByUserId={statsByUserId} />
+        <Manual1v1MatchForm users={users} statsByUserId={statsByUserId} />
+      </div>
 
       <div className="space-y-6">
         {rounds.length === 0 ? (
           <EmptyState
             emoji="📅"
             title="Sin fechas todavía"
-            description="Creá la primera con el formulario de arriba: se sortean parejas y canchas al instante."
+            description="Creá la primera con el formulario: sorteo de parejas o 1v1, o un partido manual."
           />
         ) : (
           rounds.map((round) => {
@@ -113,9 +123,9 @@ export default async function FechasPage() {
                       >
                         {round.title || `Fecha ${round.sortOrder}`}
                       </h2>
-                      {round.kind === "MANUAL_SINGLE" && (
+                      {KIND_BADGE[round.kind] && (
                         <span className="rounded-full bg-[var(--surface-muted)] px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
-                          Manual
+                          {KIND_BADGE[round.kind]!.label}
                         </span>
                       )}
                       <span className="rounded-full bg-[var(--surface-muted)] px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
@@ -154,6 +164,7 @@ export default async function FechasPage() {
                       a2={m.playerA2}
                       b1={m.playerB1}
                       b2={m.playerB2}
+                      singles={m.playerA2Id == null && m.playerB2Id == null}
                       setScores={parseSetScoresFromDb(m.setScores)}
                     />
                   ))}

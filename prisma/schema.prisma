@@ -10,7 +10,11 @@ datasource db {
 
 enum RoundKind {
   AMERICANO_RANDOM
+  /// Sorteo de cruces 1v1 (dos jugadores por cancha).
+  ONE_V_ONE_RANDOM
   MANUAL_SINGLE
+  /// Un partido manual 1v1 (dos jugadores).
+  MANUAL_ONE_V_ONE
 }
 
 enum MatchSource {
@@ -83,16 +87,17 @@ model Match {
   source     MatchSource @default(AUTO)
 
   playerA1Id String
-  playerA2Id String
+  /// En partido 1v1 va en null (solo juegan A1 y B1).
+  playerA2Id String?
   playerB1Id String
-  playerB2Id String
+  playerB2Id String?
 
   /// [{ "a": 6, "b": 3 }, …] — al mejor de 3 sets (ej. 6–3 / 3–6 / 6–3).
   setScores Json?
 
   round    Round @relation(fields: [roundId], references: [id], onDelete: Cascade)
   playerA1 User  @relation("MatchPlayerA1", fields: [playerA1Id], references: [id])
-  playerA2 User  @relation("MatchPlayerA2", fields: [playerA2Id], references: [id])
+  playerA2 User? @relation("MatchPlayerA2", fields: [playerA2Id], references: [id])
   playerB1 User  @relation("MatchPlayerB1", fields: [playerB1Id], references: [id])
-  playerB2 User  @relation("MatchPlayerB2", fields: [playerB2Id], references: [id])
+  playerB2 User? @relation("MatchPlayerB2", fields: [playerB2Id], references: [id])
 }

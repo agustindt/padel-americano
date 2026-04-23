@@ -49,11 +49,7 @@ export async function computeStandings(groupId: string): Promise<StandingRow[]> 
     },
   });
 
-  const addTeam = (
-    ids: [string, string],
-    teamWon: boolean | null,
-    draw: boolean,
-  ) => {
+  const addTeam = (ids: string[], teamWon: boolean | null, draw: boolean) => {
     for (const id of ids) {
       const row = byId.get(id);
       if (!row) continue;
@@ -79,8 +75,14 @@ export async function computeStandings(groupId: string): Promise<StandingRow[]> 
     const draw = verdict.draw;
     const aWon = verdict.teamAWon === true;
     const bWon = verdict.teamAWon === false;
-    addTeam([m.playerA1Id, m.playerA2Id], draw ? null : aWon, draw);
-    addTeam([m.playerB1Id, m.playerB2Id], draw ? null : bWon, draw);
+    const sideA: string[] = m.playerA2Id
+      ? [m.playerA1Id, m.playerA2Id]
+      : [m.playerA1Id];
+    const sideB: string[] = m.playerB2Id
+      ? [m.playerB1Id, m.playerB2Id]
+      : [m.playerB1Id];
+    addTeam(sideA, draw ? null : aWon, draw);
+    addTeam(sideB, draw ? null : bWon, draw);
   }
 
   const rows: StandingRow[] = [...byId.values()].map((row) => {

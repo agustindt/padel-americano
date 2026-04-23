@@ -1,7 +1,7 @@
 "use server";
 
 import { auth } from "@/auth";
-import { planRoundMatches } from "@/lib/americano";
+import { planRoundMatches, planRoundMatches1v1 } from "@/lib/americano";
 import { prisma } from "@/lib/prisma";
 import { verdictFromSets, parseSetsJsonField } from "@/lib/match-sets";
 import { revalidatePath } from "next/cache";
@@ -47,10 +47,19 @@ export async function createRoundAction(
     return { error: "Fecha u hora inválida." };
   }
 
+  const format = String(formData.get("roundFormat") ?? "americano");
+  const is1v1 = format === "1v1";
+
   const users = await prisma.user.findMany({ where: { groupId }, select: { id: true } });
-  if (users.length < 4) {
+  if (is1v1) {
+    if (users.length < 2) {
+      return {
+        error: "Se necesitan al menos 2 jugadores registrados en el grupo para armar una fecha 1v1.",
+      };
+    }
+  } else if (users.length < 4) {
     return {
-      error: "Se necesitan al menos 4 jugadores registrados en el grupo para armar una fecha.",
+      error: "Se necesitan al menos 4 jugadores registrados en el grupo para armar una fecha (parejas).",
     };
   }
 
@@ -60,7 +69,9 @@ export async function createRoundAction(
   });
   const sortOrder = (last?.sortOrder ?? 0) + 1;
 
-  const { matches, sitOut } = planRoundMatches(users.map((u) => u.id));
+  const userIds = users.map((u) => u.id);
+  const doublesPlan = !is1v1 ? planRoundMatches(userIds) : null;
+  const singlesPlan = is1v1 ? planRoundMatches1v1(userIds) : null;
 
   await prisma.$transaction(async (tx) => {
     const round = await tx.round.create({
@@ -70,26 +81,45 @@ export async function createRoundAction(
         venue: venue ?? undefined,
         mapsUrl: mapsUrl ?? undefined,
         sortOrder,
-        kind: "AMERICANO_RANDOM",
+        kind: is1v1 ? "ONE_V_ONE_RANDOM" : "AMERICANO_RANDOM",
         status,
         groupId,
       },
     });
-    let court = 1;
-    for (const m of matches) {
-      await tx.match.create({
-        data: {
-          roundId: round.id,
-          courtLabel: `Cancha ${court++}`,
-          playerA1Id: m.a1,
-          playerA2Id: m.a2,
-          playerB1Id: m.b1,
-          playerB2Id: m.b2,
-        },
-      });
-    }
-    for (const uid of sitOut) {
-      await tx.roundSitOut.create({ data: { roundId: round.id, userId: uid } });
+    if (doublesPlan) {
+      let court = 1;
+      for (const m of doublesPlan.matches) {
+        await tx.match.create({
+          data: {
+            roundId: round.id,
+            courtLabel: `Cancha ${court++}`,
+            playerA1Id: m.a1,
+            playerA2Id: m.a2,
+            playerB1Id: m.b1,
+            playerB2Id: m.b2,
+          },
+        });
+      }
+      for (const uid of doublesPlan.sitOut) {
+        await tx.roundSitOut.create({ data: { roundId: round.id, userId: uid } });
+      }
+    } else if (singlesPlan) {
+      let court = 1;
+      for (const m of singlesPlan.matches) {
+        await tx.match.create({
+          data: {
+            roundId: round.id,
+            courtLabel: `Cancha ${court++}`,
+            playerA1Id: m.a1,
+            playerA2Id: null,
+            playerB1Id: m.b1,
+            playerB2Id: null,
+          },
+        });
+      }
+      for (const uid of singlesPlan.sitOut) {
+        await tx.roundSitOut.create({ data: { roundId: round.id, userId: uid } });
+      }
     }
   });
 
@@ -146,6 +176,60 @@ export async function createManualMatchAction(
         playerA2Id: a2,
         playerB1Id: b1,
         playerB2Id: b2,
+      },
+    });
+  });
+
+  revalidatePath("/");
+  revalidatePath("/fechas");
+  revalidatePath("/posiciones");
+  return { ok: true };
+}
+
+export async function createManual1v1MatchAction(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
+  const session = await auth();
+  if (!session?.user?.id || !session.user.groupId) return { error: "No autorizado." };
+
+  const groupId = session.user.groupId;
+  const title = String(formData.get("title") ?? "").trim() || "Partido 1v1";
+  const a1 = String(formData.get("playerA1Id") ?? "");
+  const b1 = String(formData.get("playerB1Id") ?? "");
+  if (!a1 || !b1) return { error: "Elegí los dos jugadores." };
+  if (a1 === b1) return { error: "Los dos jugadores tienen que ser distintos." };
+
+  const inGroup = await prisma.user.count({
+    where: { id: { in: [a1, b1] }, groupId },
+  });
+  if (inGroup !== 2) return { error: "Ambos jugadores tienen que ser del mismo grupo." };
+
+  const last = await prisma.round.findFirst({
+    where: { groupId },
+    orderBy: { sortOrder: "desc" },
+  });
+  const sortOrder = (last?.sortOrder ?? 0) + 1;
+
+  await prisma.$transaction(async (tx) => {
+    const round = await tx.round.create({
+      data: {
+        title,
+        sortOrder,
+        kind: "MANUAL_ONE_V_ONE",
+        status: "CONFIRMED",
+        groupId,
+      },
+    });
+    await tx.match.create({
+      data: {
+        roundId: round.id,
+        courtLabel: "Cancha 1",
+        source: "MANUAL",
+        playerA1Id: a1,
+        playerA2Id: null,
+        playerB1Id: b1,
+        playerB2Id: null,
       },
     });
   });

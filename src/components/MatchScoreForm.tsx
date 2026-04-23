@@ -22,9 +22,12 @@ export type MatchScoreFormProps = {
   matchId: string;
   courtLabel: string | null;
   a1: Player;
-  a2: Player;
+  /** null en partido 1v1 */
+  a2: Player | null;
   b1: Player;
-  b2: Player;
+  b2: Player | null;
+  /** true cuando no hay pareja (1v1) */
+  singles: boolean;
   /** null si todavía no hay resultado guardado */
   setScores: GameSet[] | null;
 };
@@ -73,6 +76,7 @@ export function MatchScoreForm({
   a2,
   b1,
   b2,
+  singles,
   setScores: initialSetScores,
 }: MatchScoreFormProps) {
   const [state, saveAction, savePending] = useActionState(saveMatchScoreAction, initial);
@@ -126,11 +130,25 @@ export function MatchScoreForm({
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
           <div className="min-w-0 flex-1 space-y-1">
             <p className="text-base font-medium leading-snug sm:text-sm">
-              <span className="break-words">{a1.name}</span> + <span className="break-words">{a2.name}</span>
+              {singles ? (
+                <span className="break-words">{a1.name}</span>
+              ) : (
+                <>
+                  <span className="break-words">{a1.name}</span> +{" "}
+                  <span className="break-words">{a2?.name ?? ""}</span>
+                </>
+              )}
             </p>
             <p className="text-xs text-[var(--muted)]">vs</p>
             <p className="text-base font-medium leading-snug sm:text-sm">
-              <span className="break-words">{b1.name}</span> + <span className="break-words">{b2.name}</span>
+              {singles ? (
+                <span className="break-words">{b1.name}</span>
+              ) : (
+                <>
+                  <span className="break-words">{b1.name}</span> +{" "}
+                  <span className="break-words">{b2?.name ?? ""}</span>
+                </>
+              )}
             </p>
             {summaryLine && (
               <p className="mt-2 text-xs font-medium text-[var(--foreground)]">Guardado: {summaryLine}</p>
@@ -141,9 +159,9 @@ export function MatchScoreForm({
             <p className="mb-2 text-xs font-medium text-[var(--muted)]">Al mejor de tres sets (podés cargar 1, 2 o 3)</p>
             <div className="flex items-center justify-between gap-2 border-b border-[var(--border)] pb-2 text-xs text-[var(--muted)] sm:text-sm">
               <span className="w-14 shrink-0" />
-              <span className="flex-1 text-center">Equipo A</span>
+              <span className="flex-1 text-center">{singles ? "Lado A" : "Equipo A"}</span>
               <span className="w-6 shrink-0" />
-              <span className="flex-1 text-center">Equipo B</span>
+              <span className="flex-1 text-center">{singles ? "Lado B" : "Equipo B"}</span>
             </div>
             <div className="space-y-2">
               {rows.map((row, i) => (
